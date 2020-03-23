@@ -971,7 +971,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
-const wait_1 = __webpack_require__(521);
 const crypto = __importStar(__webpack_require__(417));
 const exec = __importStar(__webpack_require__(986));
 const io = __importStar(__webpack_require__(1));
@@ -1048,15 +1047,17 @@ function run() {
             /*
               Store terraform-backend-key as KeyVault Secret
             */
-            const jsonSecretResponse = yield executeAzCliCommandWithReturn(`keyvault secret set -n terraform-backend-key --value ${storageAccountKey} --vault-name ${keyVaultName}`);
+            const secretName = 'terraform-backend-key';
+            const jsonSecretResponse = yield executeAzCliCommandWithReturn(`keyvault secret set -n ${secretName} --value ${storageAccountKey} --vault-name ${keyVaultName}`);
             const secretResponse = JSON.parse(jsonSecretResponse);
-            core.info(`secretId:${secretResponse.id}`);
-            const ms = core.getInput('milliseconds');
-            core.debug(`Waiting ${ms} milliseconds ...`);
-            core.debug(new Date().toTimeString());
-            yield wait_1.wait(parseInt(ms, 10));
-            core.debug(new Date().toTimeString());
-            core.setOutput('time', new Date().toTimeString());
+            core.info(`secretId: ${secretResponse.id}`);
+            const exportArmAccessKey = `export ARM_ACCESS_KEY=$(az keyvault secret show --name '${secretName}' --vault-name '${keyVaultName}' --query value -o tsv)`;
+            core.info(`exportArmAccessKey: ${exportArmAccessKey}`);
+            core.setOutput('exportArmAccessKey', exportArmAccessKey);
+            core.setOutput('storageAccount', storageAccountName);
+            core.setOutput('container', containerName);
+            core.setOutput('keyVault', keyVaultName);
+            core.setOutput('resourceGroup', resourceGroupName);
         }
         catch (error) {
             core.setFailed(error.message);
@@ -1410,36 +1411,6 @@ function getState(name) {
 }
 exports.getState = getState;
 //# sourceMappingURL=core.js.map
-
-/***/ }),
-
-/***/ 521:
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-function wait(milliseconds) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise(resolve => {
-            if (isNaN(milliseconds)) {
-                throw new Error('milliseconds not a number');
-            }
-            setTimeout(() => resolve('done!'), milliseconds);
-        });
-    });
-}
-exports.wait = wait;
-
 
 /***/ }),
 
