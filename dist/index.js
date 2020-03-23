@@ -1016,7 +1016,7 @@ function run() {
             core.info(`keyVaultName ${keyVaultName}`);
             core.info(`==== Creating Resource Group: ${resourceGroupName} in Location: ${location} ====`);
             yield executeAzCliCommand(`group create --name ${resourceGroupName} --location ${location}`);
-            const exists = yield executeAzCliCommandWithReturn(`az group exists -n ${resourceGroupName} --subscription ${subscriptionId}`);
+            const exists = yield executeAzCliCommandWithReturn(`group exists -n ${resourceGroupName} --subscription ${subscriptionId}`);
             if (exists === 'false') {
                 const error = `resourceGroupName:"${resourceGroupName}" create failed!`;
                 throw error;
