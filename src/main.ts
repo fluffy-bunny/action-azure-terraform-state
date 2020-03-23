@@ -26,7 +26,7 @@ async function run(): Promise<void> {
     await executeAzCliCommand('--version')
 
     const shortName: string = core.getInput('shortName')
-    core.debug(`shortName ${shortName}...`)
+    core.info(`shortName ${shortName}...`)
 
     const ms: string = core.getInput('milliseconds')
     core.debug(`Waiting ${ms} milliseconds ...`)

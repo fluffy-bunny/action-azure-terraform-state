@@ -994,7 +994,7 @@ function run() {
             azPath = yield io.which('az', true);
             yield executeAzCliCommand('--version');
             const shortName = core.getInput('shortName');
-            core.debug(`shortName ${shortName}...`);
+            core.info(`shortName ${shortName}...`);
             const ms = core.getInput('milliseconds');
             core.debug(`Waiting ${ms} milliseconds ...`);
             core.debug(new Date().toTimeString());
