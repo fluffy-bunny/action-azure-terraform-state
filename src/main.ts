@@ -25,6 +25,9 @@ async function run(): Promise<void> {
     azPath = await io.which('az', true)
     await executeAzCliCommand('--version')
 
+    const shortName: string = core.getInput('shortName')
+    core.debug(`shortName ${shortName}...`)
+
     const ms: string = core.getInput('milliseconds')
     core.debug(`Waiting ${ms} milliseconds ...`)
 
