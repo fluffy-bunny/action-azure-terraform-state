@@ -981,10 +981,6 @@ const prefix = process.env.AZURE_HTTP_USER_AGENT
     : '';
 const shortNameLower = 6;
 const shortNameUpper = 13;
-const nullWritable = new stream_1.Writable();
-nullWritable._write = function (chunk, encoding, next) {
-    next();
-};
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -1103,7 +1099,11 @@ function executeCliCommandWithReturn(cliPath, command, cmdSilent, stdoutSilent) 
                 }
             };
             if (cmdSilent) {
-                options.outStream = nullWritable;
+                options.outStream = new stream_1.Writable();
+                options.outStream._write = function (chunk, encoding, next) {
+                    process.stdout.write('redacted');
+                    next();
+                };
             }
             yield exec.exec(`"${cliPath}" ${command}`, [], options);
             if (myError.length > 0) {
@@ -1133,7 +1133,11 @@ function executeCliCommand(cliPath, command, cmdSilent, stdoutSilent) {
                 silent: cmdSilent
             };
             if (cmdSilent) {
-                options.outStream = nullWritable;
+                options.outStream = new stream_1.Writable();
+                options.outStream._write = function (chunk, encoding, next) {
+                    process.stdout.write('redacted');
+                    next();
+                };
             }
             if (!stdoutSilent) {
                 options.listeners = {
