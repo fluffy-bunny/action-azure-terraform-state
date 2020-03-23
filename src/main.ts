@@ -169,13 +169,13 @@ async function executeCliCommandWithReturn(
       listeners: {
         stdout: (data: Buffer) => {
           if (!stdoutSilent) {
-            process.stdout.write(data)
+            //process.stdout.write(data)
           }
           myOutput += data.toString()
         },
         stderr: (data: Buffer) => {
           if (!stdoutSilent) {
-            process.stderr.write(data)
+//            process.stderr.write(data)
           }
           myError += data.toString()
         }
