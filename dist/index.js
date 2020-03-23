@@ -993,9 +993,9 @@ function run() {
             const userAgentString = `${prefix2}GITHUBACTIONS_${actionName}_${usrAgentRepo}`;
             core.exportVariable('AZURE_HTTP_USER_AGENT', userAgentString);
             azPath = yield io.which('az', true);
-            yield executeAzCliCommand('--version');
-            yield executeAzCliCommand('account show');
-            const subscriptionId = yield executeAzCliCommandWithReturn('account show --query id -o tsv');
+            yield executeAzCliCommand('--version', false);
+            yield executeAzCliCommand('account show', false);
+            const subscriptionId = yield executeAzCliCommandWithReturn('account show --query id -o tsv', false);
             core.info(`subscriptionId ${subscriptionId}`);
             const shortName = core.getInput('shortName');
             core.info(`shortName ${shortName}`);
@@ -1017,8 +1017,8 @@ function run() {
               Create the Resource Group
             */
             core.info(`==== Creating Resource Group: ${resourceGroupName} in Location: ${location} ====`);
-            yield executeAzCliCommand(`group create --name ${resourceGroupName} --location ${location}`);
-            let exists = yield executeAzCliCommandWithReturn(`group exists -n ${resourceGroupName} --subscription ${subscriptionId}`);
+            yield executeAzCliCommand(`group create --name ${resourceGroupName} --location ${location}`, true);
+            let exists = yield executeAzCliCommandWithReturn(`group exists -n ${resourceGroupName} --subscription ${subscriptionId}`, true);
             if (exists === 'false') {
                 const error = `resourceGroupName:"${resourceGroupName}" create failed!`;
                 throw error;
@@ -1027,14 +1027,14 @@ function run() {
               Create the Storage Account
             */
             core.info(`==== Creating Storage Account: ${storageAccountName} in Location: ${location} ====`);
-            yield executeAzCliCommand(`storage account create --name ${storageAccountName} --resource-group ${resourceGroupName} --location ${location} --encryption-services blob --sku Standard_LRS`);
-            const storageAccountKey = yield executeAzCliCommandWithReturn(`storage account keys list --resource-group ${resourceGroupName} --account-name ${storageAccountName} --query [0].value -o tsv`);
+            yield executeAzCliCommand(`storage account create --name ${storageAccountName} --resource-group ${resourceGroupName} --location ${location} --encryption-services blob --sku Standard_LRS`, true);
+            const storageAccountKey = yield executeAzCliCommandWithReturn(`storage account keys list --resource-group ${resourceGroupName} --account-name ${storageAccountName} --query [0].value -o tsv`, true);
             /*
               Create the Storage Account Container
             */
             core.info(`==== Creating Container: ${containerName} in Storage Account: ${storageAccountName} in Location: ${location} ====`);
-            yield executeAzCliCommand(`storage container create --name ${containerName} --account-name ${storageAccountName} --account-key ${storageAccountKey}`);
-            exists = yield executeAzCliCommandWithReturn(`storage container exists --account-name ${storageAccountName} --account-key ${storageAccountKey} --name ${containerName}`);
+            yield executeAzCliCommand(`storage container create --name ${containerName} --account-name ${storageAccountName} --account-key ${storageAccountKey}`, true);
+            exists = yield executeAzCliCommandWithReturn(`storage container exists --account-name ${storageAccountName} --account-key ${storageAccountKey} --name ${containerName}`, true);
             if (exists === 'false') {
                 const error = `container:"${containerName}" create failed!`;
                 throw error;
@@ -1043,12 +1043,12 @@ function run() {
               Create the Key Vault
             */
             core.info(`==== Creating KeyVault: ${keyVaultName} in Location: ${location} ====`);
-            yield executeAzCliCommand(`keyvault create --name ${keyVaultName} --resource-group ${resourceGroupName} --location ${location}`);
+            yield executeAzCliCommand(`keyvault create --name ${keyVaultName} --resource-group ${resourceGroupName} --location ${location}`, true);
             /*
               Store terraform-backend-key as KeyVault Secret
             */
             const secretName = 'terraform-backend-key';
-            const jsonSecretResponse = yield executeAzCliCommandWithReturn(`keyvault secret set -n ${secretName} --value ${storageAccountKey} --vault-name ${keyVaultName}`);
+            const jsonSecretResponse = yield executeAzCliCommandWithReturn(`keyvault secret set -n ${secretName} --value ${storageAccountKey} --vault-name ${keyVaultName}`, true);
             const secretResponse = JSON.parse(jsonSecretResponse);
             core.info(`secretId: ${secretResponse.id}`);
             const exportArmAccessKey = `export ARM_ACCESS_KEY=$(az keyvault secret show --name '${secretName}' --vault-name '${keyVaultName}' --query value -o tsv)`;
@@ -1064,24 +1064,24 @@ function run() {
         }
     });
 }
-function executeAzCliCommandWithReturn(command) {
+function executeAzCliCommandWithReturn(command, secret) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            return yield executeCliCommandWithReturn(azPath, command);
+            return yield executeCliCommandWithReturn(azPath, command, secret);
         }
         catch (error) {
             throw new Error(error);
         }
     });
 }
-function executeCliCommandWithReturn(cliPath, command) {
+function executeCliCommandWithReturn(cliPath, command, secret) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             let myOutput = '';
             let myError = '';
             const options = {
                 listeners: {
-                    silent: true,
+                    silent: secret,
                     stdout: (data) => {
                         myOutput += data.toString();
                     },
@@ -1101,20 +1101,20 @@ function executeCliCommandWithReturn(cliPath, command) {
         }
     });
 }
-function executeAzCliCommand(command) {
+function executeAzCliCommand(command, secret) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield executeCliCommand(azPath, command);
+            yield executeCliCommand(azPath, command, secret);
         }
         catch (error) {
             throw new Error(error);
         }
     });
 }
-function executeCliCommand(cliPath, command) {
+function executeCliCommand(cliPath, command, secret) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield exec.exec(`"${cliPath}" ${command}`, [], {});
+            yield exec.exec(`"${cliPath}" ${command}`, [], { silent: secret });
         }
         catch (error) {
             throw new Error(error);
