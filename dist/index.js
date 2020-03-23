@@ -1031,7 +1031,7 @@ function run() {
             core.info(`==== Fetch Storage Account Key: ${storageAccountName} in Location: ${location} ====`);
             const storageAccountKey = yield executeAzCliCommandWithReturn(`storage account keys list --resource-group ${resourceGroupName} --account-name ${storageAccountName} --query [0].value -o tsv`, true);
             /*
-              Create the Storage Account Container
+              Creating Container
             */
             core.info(`==== Creating Container: ${containerName} in Storage Account: ${storageAccountName} in Location: ${location} ====`);
             yield executeAzCliCommand(`storage container create --name ${containerName} --account-name ${storageAccountName} --account-key ${storageAccountKey}`, false);
@@ -1085,7 +1085,7 @@ function executeCliCommandWithReturn(cliPath, command, stdoutSilent) {
                 listeners: {
                     stdout: (data) => {
                         if (!stdoutSilent) {
-                            //process.stdout.write(data)
+                            process.stdout.write(data);
                         }
                         myOutput += data.toString();
                     },

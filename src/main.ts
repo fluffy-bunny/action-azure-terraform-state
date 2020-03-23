@@ -94,7 +94,7 @@ async function run(): Promise<void> {
     )
 
     /*
-      Create the Storage Account Container
+      Creating Container
     */
     core.info(
       `==== Creating Container: ${containerName} in Storage Account: ${storageAccountName} in Location: ${location} ====`
@@ -169,13 +169,13 @@ async function executeCliCommandWithReturn(
       listeners: {
         stdout: (data: Buffer) => {
           if (!stdoutSilent) {
-            //process.stdout.write(data)
+            process.stdout.write(data)
           }
           myOutput += data.toString()
         },
         stderr: (data: Buffer) => {
           if (!stdoutSilent) {
-//            process.stderr.write(data)
+            //            process.stderr.write(data)
           }
           myError += data.toString()
         }
