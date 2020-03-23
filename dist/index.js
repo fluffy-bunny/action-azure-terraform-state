@@ -1083,6 +1083,7 @@ function executeCliCommandWithReturn(cliPath, command, secret) {
                 silent: secret,
                 listeners: {
                     stdout: (data) => {
+                        process.stdout.write(data);
                         myOutput += data.toString();
                     },
                     stderr: (data) => {
