@@ -974,12 +974,17 @@ const core = __importStar(__webpack_require__(470));
 const crypto = __importStar(__webpack_require__(417));
 const exec = __importStar(__webpack_require__(986));
 const io = __importStar(__webpack_require__(1));
+const stream_1 = __webpack_require__(413);
 let azPath;
 const prefix = process.env.AZURE_HTTP_USER_AGENT
     ? `${process.env.AZURE_HTTP_USER_AGENT}`
     : '';
 const shortNameLower = 6;
 const shortNameUpper = 13;
+const nullWritable = new stream_1.Writable();
+nullWritable._write = function (chunk, encoding, next) {
+    next();
+};
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -1097,6 +1102,9 @@ function executeCliCommandWithReturn(cliPath, command, cmdSilent, stdoutSilent) 
                     }
                 }
             };
+            if (cmdSilent) {
+                options.outStream = nullWritable;
+            }
             yield exec.exec(`"${cliPath}" ${command}`, [], options);
             if (myError.length > 0) {
                 throw new Error(myError);
@@ -1124,6 +1132,9 @@ function executeCliCommand(cliPath, command, cmdSilent, stdoutSilent) {
             const options = {
                 silent: cmdSilent
             };
+            if (cmdSilent) {
+                options.outStream = nullWritable;
+            }
             if (!stdoutSilent) {
                 options.listeners = {
                     stdout: (data) => {
@@ -1147,6 +1158,13 @@ run();
 /***/ (function(module) {
 
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 413:
+/***/ (function(module) {
+
+module.exports = require("stream");
 
 /***/ }),
 
