@@ -1080,8 +1080,8 @@ function executeCliCommandWithReturn(cliPath, command, secret) {
             let myOutput = '';
             let myError = '';
             const options = {
+                silent: secret,
                 listeners: {
-                    silent: secret,
                     stdout: (data) => {
                         myOutput += data.toString();
                     },
@@ -1114,7 +1114,10 @@ function executeAzCliCommand(command, secret) {
 function executeCliCommand(cliPath, command, secret) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield exec.exec(`"${cliPath}" ${command}`, [], { silent: secret });
+            const options = {
+                silent: secret
+            };
+            yield exec.exec(`"${cliPath}" ${command}`, [], options);
         }
         catch (error) {
             throw new Error(error);
