@@ -997,16 +997,16 @@ function run() {
             yield executeAzCliCommand('--version');
             yield executeAzCliCommand('account show');
             const subscriptionId = yield executeAzCliCommandWithReturn('account show --query id -o tsv');
-            core.info(`shortName ${subscriptionId}...`);
+            core.info(`subscriptionId ${subscriptionId}`);
             const shortName = core.getInput('shortName');
-            core.info(`shortName ${shortName}...`);
+            core.info(`shortName ${shortName}`);
             if (shortName.length < shortNameLower ||
                 shortName.length > shortNameUpper) {
                 const error = `shortName:"${shortName}" must be of length [${shortNameLower}-${shortNameUpper}]`;
                 throw error;
             }
             const location = core.getInput('location');
-            core.info(`location ${location}...`);
+            core.info(`location ${location}`);
             const resourceGroupName = `rg-terraform-${shortName}`;
             const storageAccountName = `stterraform${shortName}`;
             const keyVaultName = `kv-tf-${shortName}`;
@@ -1014,6 +1014,13 @@ function run() {
             core.info(`resourceGroupName ${resourceGroupName}`);
             core.info(`storageAccountName ${storageAccountName}`);
             core.info(`keyVaultName ${keyVaultName}`);
+            core.info(`==== Creating Resource Group: ${resourceGroupName} in Location: ${location} ====`);
+            yield executeAzCliCommand(`group create --name ${resourceGroupName} --location ${location}`);
+            const exists = yield executeAzCliCommandWithReturn(`az group exists -n ${resourceGroupName} --subscription ${subscriptionId}`);
+            if (exists === 'false') {
+                const error = `resourceGroupName:"${resourceGroupName}" create failed!`;
+                throw error;
+            }
             const ms = core.getInput('milliseconds');
             core.debug(`Waiting ${ms} milliseconds ...`);
             core.debug(new Date().toTimeString());
