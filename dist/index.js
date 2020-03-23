@@ -1014,6 +1014,9 @@ function run() {
             core.info(`resourceGroupName ${resourceGroupName}`);
             core.info(`storageAccountName ${storageAccountName}`);
             core.info(`keyVaultName ${keyVaultName}`);
+            /*
+              Create the Resource Group
+            */
             core.info(`==== Creating Resource Group: ${resourceGroupName} in Location: ${location} ====`);
             yield executeAzCliCommand(`group create --name ${resourceGroupName} --location ${location}`);
             const exists = yield executeAzCliCommandWithReturn(`group exists -n ${resourceGroupName} --subscription ${subscriptionId}`);
@@ -1021,6 +1024,13 @@ function run() {
                 const error = `resourceGroupName:"${resourceGroupName}" create failed!`;
                 throw error;
             }
+            /*
+              Create the Storage Account
+            */
+            core.info(`==== Creating Storage Account: ${storageAccountName} in Location: ${location} ====`);
+            yield executeAzCliCommand(`storage account create --name ${storageAccountName} --resource-group ${resourceGroupName} --location ${location} --encryption-services blob --sku Standard_LRS`);
+            const storageAccountKey = yield executeAzCliCommandWithReturn(`storage account keys list --resource-group ${resourceGroupName} --account-name ${storageAccountName} --query [0].value -o tsv`);
+            core.info(`storageAccountKey ${storageAccountKey}`);
             const ms = core.getInput('milliseconds');
             core.debug(`Waiting ${ms} milliseconds ...`);
             core.debug(new Date().toTimeString());
