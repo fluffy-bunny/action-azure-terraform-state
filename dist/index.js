@@ -1045,6 +1045,12 @@ function run() {
             */
             core.info(`==== Creating KeyVault: ${keyVaultName} in Location: ${location} ====`);
             yield executeAzCliCommand(`keyvault create --name ${keyVaultName} --resource-group ${resourceGroupName} --location ${location}`);
+            /*
+              Store terraform-backend-key as KeyVault Secret
+            */
+            const jsonSecretResponse = yield executeAzCliCommandWithReturn(`keyvault secret set -n terraform-backend-key --value ${storageAccountKey} --vault-name ${keyVaultName}`);
+            const secretResponse = JSON.parse(jsonSecretResponse);
+            core.info(`secretId:${secretResponse.id}`);
             const ms = core.getInput('milliseconds');
             core.debug(`Waiting ${ms} milliseconds ...`);
             core.debug(new Date().toTimeString());
