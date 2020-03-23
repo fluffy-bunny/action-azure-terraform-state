@@ -1081,6 +1081,7 @@ function executeCliCommandWithReturn(cliPath, command) {
             let myError = '';
             const options = {
                 listeners: {
+                    silent: true,
                     stdout: (data) => {
                         myOutput += data.toString();
                     },
