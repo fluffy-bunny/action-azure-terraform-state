@@ -1019,7 +1019,7 @@ function run() {
             */
             core.info(`==== Creating Resource Group: ${resourceGroupName} in Location: ${location} ====`);
             yield executeAzCliCommand(`group create --name ${resourceGroupName} --location ${location}`);
-            const exists = yield executeAzCliCommandWithReturn(`group exists -n ${resourceGroupName} --subscription ${subscriptionId}`);
+            let exists = yield executeAzCliCommandWithReturn(`group exists -n ${resourceGroupName} --subscription ${subscriptionId}`);
             if (exists === 'false') {
                 const error = `resourceGroupName:"${resourceGroupName}" create failed!`;
                 throw error;
@@ -1030,7 +1030,21 @@ function run() {
             core.info(`==== Creating Storage Account: ${storageAccountName} in Location: ${location} ====`);
             yield executeAzCliCommand(`storage account create --name ${storageAccountName} --resource-group ${resourceGroupName} --location ${location} --encryption-services blob --sku Standard_LRS`);
             const storageAccountKey = yield executeAzCliCommandWithReturn(`storage account keys list --resource-group ${resourceGroupName} --account-name ${storageAccountName} --query [0].value -o tsv`);
-            core.info(`storageAccountKey ${storageAccountKey}`);
+            /*
+              Create the Storage Account Container
+            */
+            core.info(`==== Creating Container: ${containerName} in Storage Account: ${storageAccountName} in Location: ${location} ====`);
+            yield executeAzCliCommand(`storage container create --name ${containerName} --account-name ${storageAccountName} --account-key ${storageAccountKey}`);
+            exists = yield executeAzCliCommandWithReturn(`storage container exists --account-name ${storageAccountName} --account-key ${storageAccountKey} --name ${containerName}`);
+            if (exists === 'false') {
+                const error = `container:"${containerName}" create failed!`;
+                throw error;
+            }
+            /*
+              Create the Key Vault
+            */
+            core.info(`==== Creating KeyVault: ${keyVaultName} in Location: ${location} ====`);
+            yield executeAzCliCommand(`keyvault create --name ${keyVaultName} --resource-group ${resourceGroupName} --location ${location}`);
             const ms = core.getInput('milliseconds');
             core.debug(`Waiting ${ms} milliseconds ...`);
             core.debug(new Date().toTimeString());
