@@ -2,9 +2,17 @@ name: 'Your name here'
 description: 'Provide a description here'
 author: 'Your name or organization here'
 inputs:
-  myInput:              # change this
-    description: 'input description here'
-    default: 'default value if applicable'
+  
+  shortName:             
+    description: 'name of terraform project (lowercase alphanumberic 13 char long)'
+    default: ''
+    required: true
+
+  location:             
+    description: 'azure location, i.e. eastus2'
+    default: ''
+    required: true
+
 runs:
   using: 'node12'
   main: 'dist/index.js'

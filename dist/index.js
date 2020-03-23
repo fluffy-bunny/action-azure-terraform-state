@@ -979,6 +979,8 @@ let azPath;
 const prefix = process.env.AZURE_HTTP_USER_AGENT
     ? `${process.env.AZURE_HTTP_USER_AGENT}`
     : '';
+const shortNameLower = 6;
+const shortNameUpper = 13;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -993,8 +995,25 @@ function run() {
             core.exportVariable('AZURE_HTTP_USER_AGENT', userAgentString);
             azPath = yield io.which('az', true);
             yield executeAzCliCommand('--version');
+            yield executeAzCliCommand('account show');
+            const subscriptionId = yield executeAzCliCommandWithReturn('account show --query id -o tsv');
+            core.info(`shortName ${subscriptionId}...`);
             const shortName = core.getInput('shortName');
             core.info(`shortName ${shortName}...`);
+            if (shortName.length < shortNameLower ||
+                shortName.length > shortNameUpper) {
+                const error = `shortName:"${shortName}" must be of length [${shortNameLower}-${shortNameUpper}]`;
+                throw error;
+            }
+            const location = core.getInput('location');
+            core.info(`location ${location}...`);
+            const resourceGroupName = `rg-terraform-${shortName}`;
+            const storageAccountName = `stterraform${shortName}`;
+            const keyVaultName = `kv-tf-${shortName}`;
+            const containerName = 'tstate';
+            core.info(`resourceGroupName ${resourceGroupName}`);
+            core.info(`storageAccountName ${storageAccountName}`);
+            core.info(`keyVaultName ${keyVaultName}`);
             const ms = core.getInput('milliseconds');
             core.debug(`Waiting ${ms} milliseconds ...`);
             core.debug(new Date().toTimeString());
@@ -1004,6 +1023,42 @@ function run() {
         }
         catch (error) {
             core.setFailed(error.message);
+        }
+    });
+}
+function executeAzCliCommandWithReturn(command) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            return yield executeCliCommandWithReturn(azPath, command);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    });
+}
+function executeCliCommandWithReturn(cliPath, command) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let myOutput = '';
+            let myError = '';
+            const options = {
+                listeners: {
+                    stdout: (data) => {
+                        myOutput += data.toString();
+                    },
+                    stderr: (data) => {
+                        myError += data.toString();
+                    }
+                }
+            };
+            yield exec.exec(`"${cliPath}" ${command}`, [], options);
+            if (myError.length > 0) {
+                throw new Error(myError);
+            }
+            return myOutput;
+        }
+        catch (error) {
+            throw new Error(error);
         }
     });
 }
